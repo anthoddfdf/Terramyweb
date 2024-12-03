@@ -17,7 +17,8 @@ echo "<html>
     <title>Welcome to Nginx!</title>
 </head>
 <body>
-    <h1>Success! The Nginx web server is installed and running.</h1>
+    <h1>Success! The Nginx web server is installed and running we made a new change to the server.
+    https://stock.adobe.com/search?k=congrats</h1>
 </body>
 </html>" | sudo tee /var/www/html/index.html
 
