@@ -16,10 +16,10 @@ variable "size" {
 }
 variable "cidr_blo" {
   default = ["0.0.0.0/0"]
-  
+
 }
 variable "environment" {
-  type = string
+  type    = string
   default = "test"
-  
+
 }
