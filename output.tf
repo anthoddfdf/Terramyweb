@@ -10,3 +10,7 @@ output "environment" {
   value = var.environment
 
 }
+output "aws_ami" {
+    value = aws_ami_from_instance.aws_ami
+  
+}

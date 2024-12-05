@@ -11,15 +11,15 @@ terraform {
     }
   }
 }
-terraform {
-  backend "remote" {
-    organization = "Test-cloudpro"
+//terraform {
+//  backend "remote" {
+//    organization = "Test-cloudpro"
 
-    workspaces {
-      name = "myapp"
-    }
-  }
-}
+//    workspaces {
+//      name = "myapp"
+//    }
+//  }
+//}
 
 
 

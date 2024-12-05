@@ -119,4 +119,76 @@ resource "aws_instance" "njinx_server" {
     Name = "wedapp"
   }
 }
- 
+ resource "aws_ami_from_instance" "aws_ami" {
+  name               = "instanceami"
+  source_instance_id = aws_instance.njinx_server.id
+}
+resource "aws_launch_template" "app" {
+  name = "app-launch-template"
+
+  image_id      = aws_ami_from_instance.aws_ami.id # Replace with your AMI ID
+  instance_type = "t2.micro"
+
+  network_interfaces {
+    associate_public_ip_address = var.publicipa
+    security_groups             = [aws_security_group.allow.id]
+    subnet_id                   = module.vpc.public_subnets[0] # Pick one subnet
+  }
+
+  tag_specifications {
+    resource_type = "instance"
+
+    tags = {
+      Name = "webapp"
+    }
+  }
+
+  tags = {
+    Name = "app-launch-template"
+  }
+}
+
+resource "aws_autoscaling_group" "autowebapp" {
+  launch_template {
+    id      = aws_launch_template.app.id
+    version = "$Latest"
+  }
+
+  vpc_zone_identifier = module.vpc.public_subnets
+
+  min_size           = 2
+  max_size           = 3
+  desired_capacity   = 2
+  health_check_type  = "ELB"
+  health_check_grace_period = 300
+  }
+
+resource "aws_lb" "mywedapp" {
+  name               = "mywedapp"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.allow.id]
+  subnets            = module.vpc.public_subnets
+
+}
+
+resource "aws_lb_target_group" "webapptg" {
+  name     = "myappweb"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = module.vpc.default_vpc_id
+
+
+#  target_group_health {
+#    dns_failover {
+#      minimum_healthy_targets_count      = "1"
+#      minimum_healthy_targets_percentage = "off"
+#    }
+
+#    unhealthy_state_routing {
+#      minimum_healthy_targets_count      = "1"
+#      minimum_healthy_targets_percentage = "off"
+#    }
+#  }
+}
+
