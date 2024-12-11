@@ -44,6 +44,13 @@ resource "aws_security_group" "allow" {
   }
   ingress {
     description = "TLS from VPC"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = var.cidr_blo
+  }
+  ingress {
+    description = "TLS from VPC"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -119,7 +126,7 @@ resource "aws_instance" "njinx_server" {
     Name = "wedapp"
   }
 }
- resource "aws_ami_from_instance" "aws_ami" {
+resource "aws_ami_from_instance" "aws_ami" {
   name               = "instanceami"
   source_instance_id = aws_instance.njinx_server.id
 }
@@ -156,12 +163,21 @@ resource "aws_autoscaling_group" "autowebapp" {
 
   vpc_zone_identifier = module.vpc.public_subnets
 
-  min_size           = 2
-  max_size           = 3
-  desired_capacity   = 2
-  health_check_type  = "ELB"
+  min_size                  = 3
+  max_size                  = 4
+  desired_capacity          = 3
+  health_check_type         = "ELB"
   health_check_grace_period = 300
+
+  target_group_arns = [aws_lb_target_group.webapptg.arn]
+
+  tag {
+    key                 = "Name"
+    value               = "webapp-asg-instance"
+    propagate_at_launch = true
   }
+}
+
 
 resource "aws_lb" "mywedapp" {
   name               = "mywedapp"
@@ -176,8 +192,19 @@ resource "aws_lb_target_group" "webapptg" {
   name     = "myappweb"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = module.vpc.default_vpc_id
+  vpc_id   = module.vpc.vpc_id
+}
+resource "aws_lb_listener" "app_listener" {
+  load_balancer_arn = aws_lb.mywedapp.arn
+  port              = 80
+  protocol          = "HTTP"
 
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.webapptg.arn
+  }
+
+}
 
 #  target_group_health {
 #    dns_failover {
@@ -190,5 +217,5 @@ resource "aws_lb_target_group" "webapptg" {
 #      minimum_healthy_targets_percentage = "off"
 #    }
 #  }
-}
+
 
